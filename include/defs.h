@@ -24,9 +24,9 @@
 #endif
 
 #ifdef VERBOSE_MODE
-#define N(X) X
+#define V(X) X
 #else
-#define N(X)
+#define V(X)
 #endif
 
 #endif

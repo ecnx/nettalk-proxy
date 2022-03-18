@@ -9,7 +9,7 @@
  */
 static void show_usage ( void )
 {
-    N ( printf ( "[ntpx] usage: nettalk-proxy s-addr:n-port a-port/b-port\n"
+    V ( printf ( "[ntpx] usage: nettalk-proxy s-addr:n-port a-port/b-port\n"
             "\n"
             "       s-addr       Listen address\n" "       n-port       Listen port\n" "\n" ) );
 }
@@ -66,7 +66,7 @@ int main ( int argc, char *argv[] )
     struct proxy_t proxy;
 
     /* Show program version */
-    N ( printf ( "[ntpx] Net Talk Proxy - ver. " AXPROXY_VERSION "\n" ) );
+    V ( printf ( "[ntpx] Net Talk Proxy - ver. " AXPROXY_VERSION "\n" ) );
 
     /* Validate arguments count */
     if ( argc != 2 )
@@ -91,12 +91,12 @@ int main ( int argc, char *argv[] )
     {
         if ( proxy_task ( &proxy ) < 0 )
         {
-            N ( printf ( "[ntpx] exit status: %i\n", errno ) );
+            V ( printf ( "[ntpx] exit status: %i\n", errno ) );
             return 1;
         }
         sleep ( 1 );
     }
 
-    N ( printf ( "[ntpx] exit status: success\n" ) );
+    V ( printf ( "[ntpx] exit status: success\n" ) );
     return 0;
 }

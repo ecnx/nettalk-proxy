@@ -210,7 +210,7 @@ static void show_stats ( struct proxy_t *proxy )
         total++;
     }
 
-    N ( printf ( "[ntpx] load: C:%i/%i *:%i/%i\n", c_forwarding, c_total, total, POOL_SIZE ) );
+    V ( printf ( "[ntpx] load: C:%i/%i *:%i/%i\n", c_forwarding, c_total, total, POOL_SIZE ) );
 }
 #endif
 
@@ -376,14 +376,14 @@ static int watch_streams_poll ( struct proxy_t *proxy )
     /* Rebuild poll event list */
     if ( build_poll_list ( proxy, poll_list, &poll_len ) < 0 )
     {
-        N ( printf ( "[ntpx] poll build failed: %i\n", errno ) );
+        V ( printf ( "[ntpx] poll build failed: %i\n", errno ) );
         return -1;
     }
 
     /* Poll events */
     if ( ( nfds = poll ( poll_list, poll_len, POLL_TIMEOUT_MSEC ) ) < 0 )
     {
-        N ( printf ( "[ntpx] poll failed: %i\n", errno ) );
+        V ( printf ( "[ntpx] poll failed: %i\n", errno ) );
         return -1;
     }
 
@@ -529,14 +529,14 @@ static int watch_streams_epoll ( struct proxy_t *proxy )
     /* Rebuild epoll event list */
     if ( build_epoll_list ( proxy ) < 0 )
     {
-        N ( printf ( "[ntpx] poll build failed: %i\n", errno ) );
+        V ( printf ( "[ntpx] poll build failed: %i\n", errno ) );
         return -1;
     }
 
     /* E-Poll events */
     if ( ( nfds = epoll_wait ( proxy->epoll_fd, events, POOL_SIZE, POLL_TIMEOUT_MSEC ) ) < 0 )
     {
-        N ( printf ( "[ntpx] poll failed: %i\n", errno ) );
+        V ( printf ( "[ntpx] poll failed: %i\n", errno ) );
         return -1;
     }
 
@@ -825,7 +825,7 @@ static int handle_stream_events ( struct proxy_t *proxy, struct stream_t *stream
     switch ( stream->role )
     {
     case S_SERVER:
-        N ( show_stats ( proxy ) );
+        V ( show_stats ( proxy ) );
         if ( ( status = handle_new_stream ( proxy, stream, S_CLIENT ) ) == -2 )
         {
             return -1;
@@ -859,7 +859,7 @@ static int handle_streams_cycle ( struct proxy_t *proxy )
     /* Watch streams events */
     if ( ( status = watch_streams ( proxy ) ) < 0 )
     {
-        N ( printf ( "[ntpx] event watch failed: %i\n", errno ) );
+        V ( printf ( "[ntpx] event watch failed: %i\n", errno ) );
         return -1;
     }
 
@@ -868,7 +868,7 @@ static int handle_streams_cycle ( struct proxy_t *proxy )
     {
         reduce_streams ( proxy );
         cleanup_streams ( proxy );
-        N ( show_stats ( proxy ) );
+        V ( show_stats ( proxy ) );
         return 0;
     }
 
@@ -911,19 +911,37 @@ int proxy_task ( struct proxy_t *proxy )
     memset ( proxy->stream_pool, '\0', sizeof ( proxy->stream_pool ) );
 
     /* Create epoll fd if possible */
-    if ( ( proxy->epoll_fd = epoll_create1 ( 0 ) ) >= 0 )
+#ifdef EPOLL_CREATE_ANY
+    if ( ( proxy->epoll_fd = epoll_create ( 0 ) ) >= 0 )
     {
-        N ( printf ( "[ntpx] epoll initialized.\n" ) );
+        V ( printf ( "[axpr] epoll initialized.\n" ) );
 
     } else
     {
-        N ( printf ( "[ntpx] epoll not supported.\n" ) );
+        if ( ( proxy->epoll_fd = epoll_create1 ( 0 ) ) >= 0 )
+        {
+            V ( printf ( "[axpr] epoll-1 initialized.\n" ) );
+
+        } else
+        {
+            V ( printf ( "[axpr] epoll not supported.\n" ) );
+        }
     }
+#else
+    if ( ( proxy->epoll_fd = EPOLL_CREATE ( 0 ) ) >= 0 )
+    {
+        V ( printf ( "[axpr] epoll initialized.\n" ) );
+
+    } else
+    {
+        V ( printf ( "[axpr] epoll not supported.\n" ) );
+    }
+#endif
 
     /* Setup listen socket */
     if ( ( sock = listen_socket ( proxy->laddr, proxy->lport ) ) < 0 )
     {
-        N ( printf ( "[ntpx] bind socket failed: %i\n", errno ) );
+        V ( printf ( "[ntpx] bind socket failed: %i\n", errno ) );
         remove_all_streams ( proxy );
         if ( proxy->epoll_fd >= 0 )
         {
@@ -948,7 +966,7 @@ int proxy_task ( struct proxy_t *proxy )
     stream->role = S_SERVER;
     stream->events = POLLIN;
 
-    N ( printf ( "[ntpx] setup successful.\n" ) );
+    V ( printf ( "[ntpx] setup successful.\n" ) );
 
     /* Run forward loop */
     while ( ( status = handle_streams_cycle ( proxy ) ) >= 0 );
@@ -962,7 +980,7 @@ int proxy_task ( struct proxy_t *proxy )
         close ( proxy->epoll_fd );
     }
 
-    N ( printf ( "[ntpx] free done.\n" ) );
+    V ( printf ( "[ntpx] free done.\n" ) );
 
     return status;
 }
