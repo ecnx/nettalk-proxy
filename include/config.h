@@ -1,16 +1,16 @@
 /* ------------------------------------------------------------------
- * AxProxy - Config Header
+ * Net Talk Proxy - Project Config Header
  * ------------------------------------------------------------------ */
 
-#ifndef AXPROXY_CONFIG_H
-#define AXPROXY_CONFIG_H
+#ifndef NETTALK_PROXY_CONFIG_H
+#define NETTALK_PROXY_CONFIG_H
 
-#define AXPROXY_VERSION             "1.04.2a"
+#define NETTALK_PROXY_VERSION       "1.05.1a"
+#define PROGRAM_SHORTCUT            "ntpx"
 #define POOL_SIZE                   256
 #define LISTEN_BACKLOG              4
-#define POLL_TIMEOUT_MSEC           3600000
+#define POLL_TIMEOUT_MSEC           16000
 #define FORWARD_CHUNK_LEN           16384
-#define BLOCK_LOCALHOST_PORTS       1
-#define HTTPS_TRAFFIC_ONLY          0
+#define DATA_QUEUE_CAPACITY         384
 
 #endif
