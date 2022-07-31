@@ -4,13 +4,20 @@ INDENT_FLAGS=-br -ce -i4 -bl -bli0 -bls -c4 -cdw -ci4 -cs -nbfda -l100 -lp -prs 
 
 OBJS = \
 	bin/startup.o \
+	bin/util.o \
 	bin/proxy.o
 
 all: host
 
+up:
+	@cp -pv ../proxy-util/util.h include/util.h
+	@cp -pv ../proxy-util/util.c src/util.c
+
 internal: prepare
 	@echo "  CC    src/startup.c"
 	@$(CC) $(CFLAGS) $(INCLUDES) src/startup.c -o bin/startup.o
+	@echo "  CC    src/util.c"
+	@$(CC) $(CFLAGS) $(INCLUDES) src/util.c -o bin/util.o
 	@echo "  CC    src/proxy.c"
 	@$(CC) $(CFLAGS) $(INCLUDES) src/proxy.c -o bin/proxy.o
 	@echo "  LD    bin/nettalk-proxy"
@@ -63,22 +70,6 @@ install:
 uninstall:
 	@rm -fv /usr/bin/nettalk-proxy
 
-post:
-	@echo "  STRIP nettalk-proxy"
-	@sstrip bin/nettalk-proxy
-	@echo "  UPX   nettalk-proxy"
-	@upx bin/nettalk-proxy
-	@echo "  LCK   nettalk-proxy"
-	@perl -pi -e 's/UPX!/EsNf/g' bin/nettalk-proxy
-	@echo "  AEM   nettalk-proxy"
-	@nogdb bin/nettalk-proxy
-
-post2:
-	@echo "  STRIP nettalk-proxy"
-	@sstrip bin/nettalk-proxy
-	@echo "  AEM   nettalk-proxy"
-	@nogdb bin/nettalk-proxy
-
 indent:
 	@indent $(INDENT_FLAGS) ./*/*.h
 	@indent $(INDENT_FLAGS) ./*/*.c
@@ -92,6 +83,3 @@ analysis:
 	@scan-build make
 	@cppcheck --force */*.h
 	@cppcheck --force */*.c
-
-gendoc:
-	@doxygen aux/doxygen.conf
